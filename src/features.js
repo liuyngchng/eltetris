@@ -24,7 +24,7 @@
  */
 
 function GetLandingHeight(last_move, board) {
-  return last_move.landing_height + ((last_move.piece.length - 1) / 2);
+    return last_move.landing_height + ((last_move.piece.length - 1) / 2);
 }
 
 /**
@@ -33,28 +33,28 @@ function GetLandingHeight(last_move, board) {
  * on the same row and vice versa.
  */
 function GetRowTransitions(board, num_columns) {
-  var transitions = 0;
-  var last_bit = 1;
+    var transitions = 0;
+    var last_bit = 1;
 
-  for (var i = 0; i < board.length; ++i) {
-    var row = board[i];
+    for (var i = 0; i < board.length; ++i) {
+        var row = board[i];
 
-    for (var j = 0; j < num_columns; ++j) {
-      var bit = (row >> j) & 1;
-      
-      if (bit != last_bit) {
-        ++transitions;
-      }
+        for (var j = 0; j < num_columns; ++j) {
+            var bit = (row >> j) & 1;
 
-      last_bit = bit;
+            if (bit != last_bit) {
+                ++transitions;
+            }
+
+            last_bit = bit;
+        }
+
+        if (bit == 0) {
+            ++transitions;
+        }
+        last_bit = 1;
     }
-
-    if (bit == 0) {
-      ++transitions;
-    }
-    last_bit = 1;
-  }
-  return transitions;
+    return transitions;
 }
 
 /**
@@ -63,43 +63,43 @@ function GetRowTransitions(board, num_columns) {
  * on the same row and vice versa.
  */
 function GetColumnTransitions(board, num_columns) {
-  var transitions = 0;
-  var last_bit = 1;
+    var transitions = 0;
+    var last_bit = 1;
 
-  for (var i = 0; i < num_columns; ++i) {
-    for (var j = 0; j < board.length; ++j) {
-      var row = board[j];
-      var bit = (row >> i) & 1;
-      
-      if (bit != last_bit) {
-        ++transitions;
-      }
+    for (var i = 0; i < num_columns; ++i) {
+        for (var j = 0; j < board.length; ++j) {
+            var row = board[j];
+            var bit = (row >> i) & 1;
 
-      last_bit = bit;
+            if (bit != last_bit) {
+                ++transitions;
+            }
+
+            last_bit = bit;
+        }
+
+        last_bit = 1;
     }
 
-    last_bit = 1;
-  }
-  
-  return transitions;
+    return transitions;
 }
 
 function GetNumberOfHoles(board, num_columns) {
-  var holes = 0;
-  var row_holes = 0x0000;
-  var previous_row = board[board.length - 1];
+    var holes = 0;
+    var row_holes = 0x0000;
+    var previous_row = board[board.length - 1];
 
-  for (var i = board.length - 2; i >= 0; --i) {
-    row_holes = ~board[i] & (previous_row | row_holes);
+    for (var i = board.length - 2; i >= 0; --i) {
+        row_holes = ~board[i] & (previous_row | row_holes);
 
-    for (var j = 0; j < num_columns; ++j) {
-      holes += ((row_holes >> j) & 1);
+        for (var j = 0; j < num_columns; ++j) {
+            holes += ((row_holes >> j) & 1);
+        }
+
+        previous_row = board[i];
     }
 
-    previous_row = board[i];
-  }
-
-  return holes;
+    return holes;
 }
 
 /**
@@ -117,64 +117,64 @@ function GetNumberOfHoles(board, num_columns) {
  *    1 + 2 + 3 + ... + n. This gives more significance to deeper holes.
  */
 function GetWellSums(board, num_columns) {
-  var well_sums = 0;
+    var well_sums = 0;
 
-  // Check for well cells in the "inner columns" of the board.
-  // "Inner columns" are the columns that aren't touching the edge of the board.
-  for (var i = 1; i < num_columns - 1; ++i) {
+    // Check for well cells in the "inner columns" of the board.
+    // "Inner columns" are the columns that aren't touching the edge of the board.
+    for (var i = 1; i < num_columns - 1; ++i) {
+        for (var j = board.length - 1; j >= 0; --j) {
+            if ((((board[j] >> i) & 1) == 0) &&
+                (((board[j] >> (i - 1)) & 1) == 1) &&
+                (((board[j] >> (i + 1)) & 1) == 1)) {
+
+                // Found well cell, count it + the number of empty cells below it.
+                ++well_sums;
+
+                for (var k = j - 1; k >= 0; --k) {
+                    if (((board[k] >> i) & 1) == 0) {
+                        ++well_sums;
+                    } else {
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    // Check for well cells in the leftmost column of the board.
     for (var j = board.length - 1; j >= 0; --j) {
-      if ((((board[j] >> i) & 1) == 0) && 
-          (((board[j] >> (i - 1)) & 1) == 1) &&
-          (((board[j] >> (i + 1)) & 1) == 1)) {
+        if ((((board[j] >> 0) & 1) == 0) &&
+            (((board[j] >> (0 + 1)) & 1) == 1)) {
 
-        // Found well cell, count it + the number of empty cells below it.
-        ++well_sums;
-
-        for (var k = j - 1; k >= 0; --k) {
-          if (((board[k] >> i) & 1) == 0) {
+            // Found well cell, count it + the number of empty cells below it.
             ++well_sums;
-          } else {
-            break;
-          }
+
+            for (var k = j - 1; k >= 0; --k) {
+                if (((board[k] >> 0) & 1) == 0) {
+                    ++well_sums;
+                } else {
+                    break;
+                }
+            }
         }
-      }
     }
-  }
 
-  // Check for well cells in the leftmost column of the board.
-  for (var j = board.length - 1; j >= 0; --j) {
-    if ((((board[j] >> 0) & 1) == 0) && 
-      (((board[j] >> (0 + 1)) & 1) == 1)) {
+    // Check for well cells in the rightmost column of the board.
+    for (var j = board.length - 1; j >= 0; --j) {
+        if ((((board[j] >> (num_columns - 1)) & 1) == 0) &&
+            (((board[j] >> (num_columns - 2)) & 1) == 1)) {
+            // Found well cell, count it + the number of empty cells below it.
 
-      // Found well cell, count it + the number of empty cells below it.
-      ++well_sums;
-
-      for (var k = j - 1; k >= 0; --k) {
-        if (((board[k] >> 0) & 1) == 0) {
-          ++well_sums;
-        } else {
-          break;
+            ++well_sums;
+            for (var k = j - 1; k >= 0; --k) {
+                if (((board[k] >> (num_columns - 1)) & 1) == 0) {
+                    ++well_sums;
+                } else {
+                    break;
+                }
+            }
         }
-      }
     }
-  }
 
-  // Check for well cells in the rightmost column of the board.
-  for (var j = board.length - 1; j >= 0; --j) {
-    if ((((board[j] >> (num_columns - 1)) & 1) == 0) && 
-      (((board[j] >> (num_columns - 2)) & 1) == 1)) {
-      // Found well cell, count it + the number of empty cells below it.
-
-      ++well_sums;
-      for (var k = j - 1; k >= 0; --k) {
-        if (((board[k] >> (num_columns - 1)) & 1) == 0) {
-          ++well_sums;
-        } else {
-          break;
-        }
-      }
-    }
-  }
-
-  return well_sums;
+    return well_sums;
 }
